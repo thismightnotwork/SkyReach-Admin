@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SkyReach - Admin Login</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+    }
+    header {
+      background: #1e293b;
+      padding: 1rem;
+    }
+    header img {
+      height: 60px;
+      vertical-align: middle;
+    }
+    nav a {
+      color: #93c5fd;
+      margin: 0 1rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    #banner {
+      width: 100%;
+      max-height: 250px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+    }
+    footer {
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #94a3b8;
+      padding-bottom: 1rem;
+    }
+    #login-container {
+      background: #1e293b;
+      padding: 2rem;
+      border-radius: 12px;
+      max-width: 350px;
+      margin: 0 auto;
+      box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+    }
+    input, button {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: none;
+    }
+    input {
+      background: #334155;
+      color: white;
+    }
+    input::placeholder {
+      color: #94a3b8;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      border: none;
+    }
+    button:hover {
+      background-color: #1e40af;
+    }
+    #message {
+      margin-top: 1rem;
+      min-height: 1.2rem;
+      color: #f87171;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="assets/logo.png" alt="SkyReach Logo" />
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="admin-login.html">Admin Login</a>
+      <a href="contact-us.html">Contact Us</a>
+    </nav>
+  </header>
+
+  <main>
+    <img id="banner" src="assets/banner.png" alt="SkyReach Banner" />
+    <h1>Admin Login</h1>
+    <p>Access the SkyReach admin control panel.</p>
+
+    <div id="login-container">
+      <input id="email" type="email" placeholder="Email" autocomplete="username" />
+      <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+      <button id="login-btn">Log In</button>
+      <div id="message"></div>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 SkyReach Virtual Airline — All rights reserved.
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, getIdTokenResult } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD44xsP9dX2IgC2SJOxLjCX8zPtkLgTQmE",
+      authDomain: "skyreach-admin.firebaseapp.com",
+      projectId: "skyreach-admin",
+      storageBucket: "skyreach-admin.firebasestorage.app",
+      messagingSenderId: "383058209624",
+      appId: "1:383058209624:web:18288a224673972699132d",
+      measurementId: "G-2MSK2HKL44"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('login-btn');
+    const message = document.getElementById('message');
+
+    loginBtn.onclick = () => {
+      message.textContent = "";
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!email || !password) {
+        message.textContent = "Please enter email and password.";
+        return;
+      }
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(async (userCredential) => {
+          const user = userCredential.user;
+          const idTokenResult = await getIdTokenResult(user, true);
+          const isAdmin = idTokenResult.claims.admin === true;
+
+          if (isAdmin) {
+            localStorage.setItem('isAdmin', 'true');
+            window.location.href = '/admin/event-selection.html';
+          } else {
+            message.textContent = "Access denied. Admins only.";
+            auth.signOut();
+          }
+        })
+        .catch(e => {
+          message.textContent = e.message;
+        });
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const idTokenResult = await getIdTokenResult(user);
+        const isAdmin = idTokenResult.claims.admin === true;
+
+        if (isAdmin) {
+          localStorage.setItem('isAdmin', 'true');
+          window.location.href = '/admin/event-selection.html';
+        } else {
+          auth.signOut();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
