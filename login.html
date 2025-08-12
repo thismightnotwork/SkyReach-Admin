@@ -118,7 +118,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, getIdTokenResult } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD44xsP9dX2IgC2SJOxLjCX8zPtkLgTQmE",
@@ -148,38 +148,21 @@
         return;
       }
 
-      signInWithEmailAndPassword(auth, email, password)
-        .then(async (userCredential) => {
-          const user = userCredential.user;
-          const idTokenResult = await getIdTokenResult(user, true);
-          const isAdmin = idTokenResult.claims.admin === true;
-
-          if (isAdmin) {
+      // Direct admin check
+      if (email === "skyreachuk.staff@gmail.com" && password === "Skyreachstaff1") {
+        // Sign in to Firebase
+        signInWithEmailAndPassword(auth, email, password)
+          .then(() => {
             localStorage.setItem('isAdmin', 'true');
             window.location.href = '/admin/event-selection.html';
-          } else {
-            message.textContent = "Access denied. Admins only.";
-            auth.signOut();
-          }
-        })
-        .catch(e => {
-          message.textContent = e.message;
-        });
-    };
-
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const idTokenResult = await getIdTokenResult(user);
-        const isAdmin = idTokenResult.claims.admin === true;
-
-        if (isAdmin) {
-          localStorage.setItem('isAdmin', 'true');
-          window.location.href = '/admin/event-selection.html';
-        } else {
-          auth.signOut();
-        }
+          })
+          .catch(e => {
+            message.textContent = e.message;
+          });
+      } else {
+        message.textContent = "Access denied. Admins only.";
       }
-    });
+    };
   </script>
 </body>
 </html>
